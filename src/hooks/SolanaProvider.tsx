@@ -15,10 +15,14 @@ interface SolanaProviderProps {
 }
 
 export const SolanaProvider = ({children}: SolanaProviderProps) => {
-  const network = WalletAdapterNetwork.Devnet;
+  const network = WalletAdapterNetwork.Mainnet;
 
-  // You can also provide a custom RPC endpoint
-  const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+  const endpoint = useMemo(() => {
+    if(network === WalletAdapterNetwork.Mainnet){
+      return `https://solana-mainnet.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_SOLANA_API_KEY}`
+    }
+    return clusterApiUrl(network)
+  }, [network]);
 
   return (
     <ConnectionProvider endpoint={endpoint}>
