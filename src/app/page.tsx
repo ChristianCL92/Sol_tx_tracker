@@ -1,8 +1,10 @@
+import SolTransaction from "@/components/transactions/SolTransaction";
 import WalletButton from "@/components/wallet/WalletButton";
 import { WalletInfo } from "@/components/wallet/WalletInfo";
 export default function Home() {
   return (
-      <section className="flex flex-row min-h-screen w-full">
+    <>
+      <section className="flex flex-row w-full">
         <div className="w-full mt-10">
           <h1 className="text-3xl font-bold mb-4 text-center">Wallet Transaction Tracker</h1>
         </div>
@@ -11,5 +13,9 @@ export default function Home() {
             <WalletInfo />
         </div>
       </section>
+      <section className="bg-amber-200">
+              <SolTransaction />
+      </section>
+      </>
   );
 }
