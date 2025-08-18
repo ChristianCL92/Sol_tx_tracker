@@ -2,12 +2,13 @@
 
 import {DetaildTransactions, TransactionService } from "@/lib/solana/transaction-service"
 import { useConnection} from "@solana/wallet-adapter-react"
+import { ParsedTransactionWithMeta } from "@solana/web3.js"
 import { useState, useCallback, useMemo } from "react"
 
 
 const UseTransactionDetails = () => {
     const {connection } = useConnection()
-    const [useDetailedTransactions, setUseDetailedTransactions] = useState<DetaildTransactions | null>(null)
+    const [transactionDetails, setTransactionDetails] = useState<ParsedTransactionWithMeta| null>(null)
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -16,13 +17,13 @@ const UseTransactionDetails = () => {
     [connection]
      )
   
-    const fetchTransactionDetails = useCallback(async(signature:string):Promise<DetaildTransactions | null > => {
+    const fetchTransactionDetails = useCallback(async(signature:string):Promise<ParsedTransactionWithMeta| null > => {
         setLoading(true);
         setError(null);
      try {
-        const transactionDetails = await transactionService.getTransactionDetails(signature);
-        setUseDetailedTransactions(transactionDetails);
-        return transactionDetails;
+        const parsedTransaction = await transactionService.getParsedTransaction(signature);
+        setTransactionDetails(parsedTransaction);
+        return parsedTransaction;
      } catch (error) {
          console.error("Could not fetch transaction details", error);
          return null;
@@ -35,7 +36,10 @@ const UseTransactionDetails = () => {
 
   return (
     {
-        fetchTransactionDetails, transactionDetails: useDetailedTransactions, loading, error
+        fetchTransactionDetails,
+        transactionDetails, 
+        loading,
+         error
     }
   )
 }
