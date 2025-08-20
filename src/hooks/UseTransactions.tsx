@@ -21,6 +21,7 @@ const UseTransactions = (limit: number = 100): UseTransactionsResult => {
     const [ getTransaction, setGetTransaction ] = useState<TransactionSummary[]>([])
     const [ loading, setLoading ] = useState(false);
     const [ error, setError ] = useState<string | null>(null)
+    const [refetchTrigger, setRefetchTrigger] = useState(0);
 
     const transactionService = useMemo(
         () => new TransactionService(connection),
@@ -48,16 +49,18 @@ const UseTransactions = (limit: number = 100): UseTransactionsResult => {
         
     }
         utilizeTransactions();
-    }, [ publicKey, connection, limit ])
-
-
+    }, [ publicKey, connection, limit, refetchTrigger ])
+    
+const refetch = () => {
+    setRefetchTrigger(prev => prev + 1);
+}
 
 
   return {
     transactions: getTransaction,
     loading,
     error,
-    refetch: UseTransactions,
+    refetch,
     totalCount: getTransaction.length
   }
 }
