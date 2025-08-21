@@ -4,6 +4,7 @@ import {DetaildTransactions, TransactionService } from "@/lib/solana/transaction
 import { useConnection} from "@solana/wallet-adapter-react"
 import { ParsedTransactionWithMeta } from "@solana/web3.js"
 import { useState, useCallback, useMemo } from "react"
+import { isSpamTransaction, SpamFilterConfig } from "@/lib/utils/spam-filter"
 
 
 const UseTransactionDetails = () => {
@@ -11,18 +12,32 @@ const UseTransactionDetails = () => {
     const [transactionDetails, setTransactionDetails] = useState<ParsedTransactionWithMeta| null>(null)
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [isSpamDetected, setIsSpamDetected] = useState(false);
 
     const transactionService = useMemo(
-    () => new TransactionService(connection),
+      () => new TransactionService(connection),
     [connection]
      )
-  
+
+     const configSpam : SpamFilterConfig = useMemo(
+      () => ({
+        minAmountThreshold: 0.0001
+      }), []) 
+
+ 
     const fetchTransactionDetails = useCallback(async(signature:string):Promise<ParsedTransactionWithMeta| null > => {
         setLoading(true);
         setError(null);
+        setIsSpamDetected(false);
      try {
         const parsedTransaction = await transactionService.getParsedTransaction(signature);
+        if(parsedTransaction && isSpamTransaction(parsedTransaction, configSpam)) {
+        setTransactionDetails(null);
+        setIsSpamDetected(true);
+        return null
+        }
         setTransactionDetails(parsedTransaction);
+
         return parsedTransaction;
      } catch (error) {
          console.error("Could not fetch transaction details", error);
@@ -32,14 +47,15 @@ const UseTransactionDetails = () => {
      }
 
 
-    }, [transactionService]) 
+    }, [transactionService, configSpam]) 
 
   return (
     {
         fetchTransactionDetails,
         transactionDetails, 
         loading,
-         error
+         error,
+        isSpamDetected
     }
   )
 }
