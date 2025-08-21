@@ -8,7 +8,7 @@ import { useState } from "react";
 const SolTransaction = () => {
   const { publicKey } = useWallet();
   const { transactions, loading, error, refetch, totalCount } = UseTransactions(20);
-  const { fetchTransactionDetails, transactionDetails, loading: detailsLoading} = UseTransactionDetails();
+  const { fetchTransactionDetails, transactionDetails, loading: detailsLoading, isSpamDetected} = UseTransactionDetails();
   const [ showSelectedTransaction, setShowSelectedTransaction ] = useState<string | null>(null)
 
   const formatDate = (blockTime: number | null) => {
@@ -29,7 +29,7 @@ const SolTransaction = () => {
     }
 
   }
-  
+
   if (!publicKey) {
     return (
       <div className="p-6 text-center">
@@ -91,6 +91,13 @@ const SolTransaction = () => {
                 <div className="text-xs text-gray-500">
                   {formatDate(tx.blockTime)}
                 </div>
+                {isSpamDetected && showSelectedTransaction === tx.signature && (
+                  <div className="text-center py-4">
+                    <p className="text-orange-600 font-medium">🚫 Spam transaction hidden</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Transaction amount below threshold (0.0001 SOL)
+                    </p>
+                </div>)}
               </div>
               <button 
                 className="text-white hover:text-gray-500 text-sm border p-1 bg-amber-950"
