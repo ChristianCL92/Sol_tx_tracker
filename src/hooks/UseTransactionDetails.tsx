@@ -7,7 +7,7 @@ import { useState, useCallback, useMemo } from "react"
 import { isSpamTransaction, SpamFilterConfig } from "@/lib/utils/spam-filter"
 
 
-const UseTransactionDetails = () => {
+const UseTransactionDetails = (spamConfig: SpamFilterConfig) => {
     const {connection } = useConnection()
     const [transactionDetails, setTransactionDetails] = useState<ParsedTransactionWithMeta| null>(null)
     const [loading, setLoading] = useState(false);
@@ -18,20 +18,14 @@ const UseTransactionDetails = () => {
       () => new TransactionService(connection),
     [connection]
      )
-
-     const configSpam : SpamFilterConfig = useMemo(
-      () => ({
-        minAmountThreshold: 0.0001
-      }), []) 
-
- 
+    
     const fetchTransactionDetails = useCallback(async(signature:string):Promise<ParsedTransactionWithMeta| null > => {
         setLoading(true);
         setError(null);
         setIsSpamDetected(false);
      try {
         const parsedTransaction = await transactionService.getParsedTransaction(signature);
-        if(parsedTransaction && isSpamTransaction(parsedTransaction, configSpam)) {
+        if(parsedTransaction && isSpamTransaction(parsedTransaction, spamConfig)) {
         setTransactionDetails(null);
         setIsSpamDetected(true);
         return null
@@ -47,7 +41,7 @@ const UseTransactionDetails = () => {
      }
 
 
-    }, [transactionService, configSpam]) 
+    }, [transactionService, spamConfig]) 
 
   return (
     {
