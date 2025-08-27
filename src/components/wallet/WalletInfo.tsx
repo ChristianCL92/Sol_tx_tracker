@@ -40,7 +40,6 @@ export const WalletInfo = () => {
     <p><strong>Network:</strong> {connection.rpcEndpoint.includes('mainnet') ? 'Mainnet 🔴' : 'Devnet 🟡'}</p>
     <p><strong>SOL Balance:</strong>
     {loading ? "Loading..." : balance !== null ? `${balance.toFixed(4)} SOL` : "Error loading balance"}</p>
-    <p><strong>Wallet:</strong>{wallet?.adapter.name}</p>
     <p> <strong>Public address:</strong>{publicKey?.toBase58().slice(0, 4)}...{publicKey?.toBase58().slice(-4)}</p>
   </div>
     )
