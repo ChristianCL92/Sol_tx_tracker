@@ -3,18 +3,27 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import UseTransactions from "@/hooks/UseTransactions";
 import UseTransactionDetails from "@/hooks/UseTransactionDetails";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 const SolTransaction = () => {
   const { publicKey } = useWallet();
   const { transactions, loading, error, refetch, totalCount } = UseTransactions(20);
-  const { fetchTransactionDetails, transactionDetails, loading: detailsLoading, isSpamDetected} = UseTransactionDetails();
+  const [spamThreshold, setSpamThreshold] = useState(0);
+  const [showSpamSettings, setShowSpamSettings] = useState(false);
+  
+  const spamConfig = useMemo(
+    () => ({
+      minAmountThreshold: spamThreshold
+    }
+  ), [spamThreshold])
+
+  const { fetchTransactionDetails, transactionDetails, loading: detailsLoading, isSpamDetected} = UseTransactionDetails(spamConfig);
   const [ showSelectedTransaction, setShowSelectedTransaction ] = useState<string | null>(null)
 
   const formatDate = (blockTime: number | null) => {
     if (!blockTime) return 'Unknown';
     return new Date(blockTime * 1000).toLocaleString();
-  };
+  };  
 
   const truncateSignature = (signature: string) => {
     return `${signature.slice(0, 8)}...${signature.slice(-8)}`
@@ -71,17 +80,65 @@ const SolTransaction = () => {
           <p className="text-lg">
             Latest Transactions: <strong>{totalCount}</strong>
           </p>
+          <div className="flex gap-2">
           <button 
             onClick={refetch}
-            className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm"
+            className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm cursor-pointer"
           >
             Refresh
           </button>
+          <button onClick={() => setShowSpamSettings(!showSpamSettings)} className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
+            {showSpamSettings ? "❌-Close": "⚙️ Spam Filter"}
+            </button>
+          </div>
         </div>
+            {showSpamSettings && (
+              <div className="mb-2 p-3 bg-gray-50 rounded-lg border">
+              <h3 className="font-semibold">Spam Filter Settings</h3>
+              <div className="flex flex-col gap-3">
+                <div className="flex items-center gap-4">
+                  <label htmlFor="spam-threshold" className="text-sm">Hide Transactions below</label>
+                  <input 
+                  type="number" 
+                  min={0}
+                  max={1}
+                  step="0.0001"
+                  value={spamThreshold}
+                  onChange={(e)=> setSpamThreshold(Number(e.target.value))
+}
+                  className="px-4 rounded-lg border w-25 focus: outline-none focus:ring-2 focus:ring-blue-300"
+                  />
+                  <p className="text-sm">SOL</p>
+                </div>
+                <div className="flex gap-4">
+                    <span className="text-sm">Quick set</span>
+                  <button 
+                onClick={() => setSpamThreshold(0.0001)}
+                className={`px-2 py-1 text-xs rounded ${spamThreshold === 0.0001 ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+              >
+                Ultra Strict (0.0001)
+              </button>
+              <button 
+                onClick={() => setSpamThreshold(0.001)}
+                className={`px-2 py-1 text-xs rounded ${spamThreshold === 0.001 ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+              >
+                Strict (0.001)
+              </button>
+              <button 
+                onClick={() => setSpamThreshold(0.01)}
+                className={`px-2 py-1 text-xs rounded ${spamThreshold === 0.01 ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
+              >
+                Lenient (0.01)
+              </button>                  
+                </div>
+              </div>
+
+              </div>
+            )}
       </div>
-      {<div className="space-y-2">
+      <div className="space-y-2">
         {transactions.map((tx) => (
-          <div key={tx.signature} className="border rounded-lg p-4">
+          <div key={tx.signature} className="border rounded-lg p-4 bg-gray-50">
             
             <div className="flex justify-between items-start">
               <div className="flex-1">
@@ -93,14 +150,14 @@ const SolTransaction = () => {
                 </div>
                 {isSpamDetected && showSelectedTransaction === tx.signature && (
                   <div className="text-center py-4">
-                    <p className="text-orange-600 font-medium">🚫 Spam transaction hidden</p>
+                    <p className="text-orange-600 font-bold">🚫 Spam transaction hidden</p>
                     <p className="text-sm text-gray-600 mt-1">
-                      Transaction amount below threshold (0.0001 SOL)
+                      Transaction amount below threshold {spamThreshold} SOL
                     </p>
                 </div>)}
               </div>
               <button 
-                className="text-white hover:text-gray-500 text-sm border p-1 bg-amber-950"
+                className="text-white hover:text-gray-500 text-sm border p-1 bg-amber-950 cursor-pointer rounded-lg"
                 onClick={() => handleViewDetails(tx.signature)}
                 disabled={detailsLoading && showSelectedTransaction === tx.signature}
               >
@@ -171,7 +228,7 @@ const SolTransaction = () => {
         ))}
 
         
-      </div> }
+      </div> 
       
     </div>
   );
