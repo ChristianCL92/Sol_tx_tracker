@@ -1,21 +1,24 @@
 import SolTransaction from "@/components/transactions/SolTransaction";
 import WalletButton from "@/components/wallet/WalletButton";
 import { WalletInfo } from "@/components/wallet/WalletInfo";
+
 export default function Home() {
   return (
-    <>
-      <section className="flex flex-row w-full">
+    <main className="min-h-screen bg-gradient-to-r from-blue-500 to-slate-900">
+      <header className="flex flex-row w-full">
         <div className="w-full mt-10">
-          <h1 className="text-3xl font-bold mb-4 text-center">Wallet Transaction Tracker</h1>
+          <h1 className="text-4xl font-bold mb-4 text-center text-white">
+            Wallet Transaction Tracker
+          </h1>
         </div>
-        <div className="flex flex-col mt-4 mr-8 min-w-[180px]">
-            <WalletButton />
-            <WalletInfo />
-        </div>
+        <aside className="flex flex-col mt-4 mr-8 min-w-[180px]">
+          <WalletButton />
+          <WalletInfo />
+        </aside>
+      </header>
+      <section>
+        <SolTransaction />
       </section>
-      <section className="bg-amber-200">
-              <SolTransaction />
-      </section>
-      </>
+    </main>
   );
 }
