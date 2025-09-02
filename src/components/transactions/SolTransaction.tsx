@@ -7,7 +7,16 @@ import { useMemo, useState } from "react";
 
 const SolTransaction = () => {
   const { publicKey } = useWallet();
-  const { transactions, loading, error, refetch, totalCount } = UseTransactions(20);
+  const [selectTxQuantity, setSelectTxQuantity] = useState(10)
+  const [showTxSection, setShowTxSection] = useState(false);
+
+   const txQuantity = useMemo(
+    () => (
+      selectTxQuantity
+    
+), [selectTxQuantity])
+  
+  const { transactions, loading, error, refetch, totalCount } = UseTransactions(txQuantity);
   const [spamThreshold, setSpamThreshold] = useState(0);
   const [showSpamSettings, setShowSpamSettings] = useState(false);
   
@@ -16,6 +25,8 @@ const SolTransaction = () => {
       minAmountThreshold: spamThreshold
     }
   ), [spamThreshold])
+
+ 
 
   const { fetchTransactionDetails, transactionDetails, loading: detailsLoading, isSpamDetected} = UseTransactionDetails(spamConfig);
   const [ showSelectedTransaction, setShowSelectedTransaction ] = useState<string | null>(null)
@@ -64,15 +75,15 @@ const SolTransaction = () => {
         <h2 className="text-xl font-semibold mb-4">Transaction History</h2>
         <p className="text-red-600 mb-4">Error: {error}</p>
         <button 
-          onClick={refetch}
-          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          onClick={() => window.location.reload()}
+          className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 cursor-pointer"
         >
-          Retry
+          Retry 
         </button>
       </div>
     );
   }
-
+  console.log("refetching before jsx", refetch);
   return (
     <div className="p-2 w-2/6 mx-auto">
       <div className="mb-6">
@@ -80,6 +91,11 @@ const SolTransaction = () => {
           <p className="text-lg">
             Latest Transactions: <strong>{totalCount}</strong>
           </p>
+          <button 
+          onClick={() => setShowTxSection(!showTxSection)}
+          className="px-3 py-1 bg-gray-200 rounded cursor-pointer">
+            {showTxSection ? "Close" : "Tx Amount"}
+          </button>
           <div className="flex gap-2">
           <button 
             onClick={refetch}
@@ -87,7 +103,9 @@ const SolTransaction = () => {
           >
             Refresh
           </button>
-          <button onClick={() => setShowSpamSettings(!showSpamSettings)} className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
+          <button 
+            onClick={() => setShowSpamSettings(!showSpamSettings)}
+            className="px-3 py-1 bg-blue-100 text-blue-700 rounded hover:bg-blue-200 text-sm">
             {showSpamSettings ? "❌-Close": "⚙️ Spam Filter"}
             </button>
           </div>
@@ -135,6 +153,21 @@ const SolTransaction = () => {
 
               </div>
             )}
+                {showTxSection && (
+            <div className="mb-2 p-3 rounded-lg bg-gray-50 ">
+             <h3 className="font-semibold">
+              Set Transactions to display
+             </h3>
+             <label htmlFor="Select Transaction count"></label>
+             <input 
+             type="number"
+              min={0}
+              value={selectTxQuantity}
+              onChange={(e) =>setSelectTxQuantity(Number(e.target.value))}
+              className="border rounded-lg px-4"
+              />
+            </div>)
+            }
       </div>
       <div className="space-y-2">
         {transactions.map((tx) => (
