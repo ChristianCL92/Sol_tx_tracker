@@ -22,7 +22,7 @@ export class TransactionService {
 
     async getTransactionSignatures (
         publicKey: PublicKey,
-        limit: number = 100
+        limit: number
     ): Promise<TransactionSummary[]> {
         try {
             const signatures = await this.connection.getSignaturesForAddress(publicKey, {
