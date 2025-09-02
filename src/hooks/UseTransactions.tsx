@@ -13,7 +13,7 @@ interface UseTransactionsResult {
   totalCount: number;
 }
 
-const UseTransactions = (limit: number = 100): UseTransactionsResult => {
+const UseTransactions = (limit: number): UseTransactionsResult => {
 
     const { connection } = useConnection();
     const {publicKey, connect} = useWallet();
@@ -37,15 +37,25 @@ const UseTransactions = (limit: number = 100): UseTransactionsResult => {
         }
         setLoading(true);
         try {
+               if(limit === 0) {
+                setGetTransaction([]);
+                setLoading(false)
+                setError("Please select at least 1 transaction to display");
+                return;
+                
+            }
             const transactionsToGet = await transactionService.getTransactionSignatures(publicKey, limit);
+         
             setGetTransaction(transactionsToGet);
             
         } catch (error) {
             setError(error instanceof Error ? error.message : "Failed to fetch transactions");
             console.error("Did not manage to get transaction data", error)
             
-        } finally {}
+        } finally {
         setLoading(false);
+
+        }
         
     }
         utilizeTransactions();
