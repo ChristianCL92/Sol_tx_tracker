@@ -1,78 +1,46 @@
 "use client"
 
-import {TransactionService, TransactionSummary} from "../lib/solana/transaction-service";
-import { useMemo, useState, useEffect } from "react";
+import {TransactionService} from "../lib/solana/transaction-service";
+import { useMemo } from "react";
 import {useConnection, useWallet} from "@solana/wallet-adapter-react";
+import { useQuery } from "@tanstack/react-query";
 
+const UseTransactionsQuery = (limit:number) => {
 
-interface UseTransactionsResult {
-  transactions: TransactionSummary[];
-  loading: boolean;
-  error: string | null;
-  refetch: () => void;
-  totalCount: number;
-}
-
-const UseTransactions = (limit: number): UseTransactionsResult => {
-
-    const { connection } = useConnection();
-    const {publicKey, connect} = useWallet();
-
-    const [ getTransaction, setGetTransaction ] = useState<TransactionSummary[]>([])
-    const [ loading, setLoading ] = useState(false);
-    const [ error, setError ] = useState<string | null>(null)
-    const [refetchTrigger, setRefetchTrigger] = useState(0);
+    const { connection } = useConnection()
+    const { publicKey } = useWallet()
 
     const transactionService = useMemo(
         () => new TransactionService(connection),
          [connection]
         );
 
-    useEffect(() => {
-    const utilizeTransactions = async () => {
-        if (!publicKey) {
-            setGetTransaction([]);
-            setLoading(false);
-            return; 
-        }
-        setLoading(true);
-        try {
-               if(limit === 0) {
-                setGetTransaction([]);
-                setLoading(false)
-                setError("Please select at least 1 transaction to display");
-                return;
-                
+    const queryResult = useQuery({
+        queryKey: ["transactions", publicKey?.toBase58(), limit ],
+
+        queryFn:  async () => {
+            if (!publicKey) {
+                throw new Error("Wallet not connected");
             }
-            const transactionsToGet = await transactionService.getTransactionSignatures(publicKey, limit);
-         
-            setGetTransaction(transactionsToGet);
-            
-        } catch (error) {
-            setError(error instanceof Error ? error.message : "Failed to fetch transactions");
-            console.error("Did not manage to get transaction data", error)
-            
-        } finally {
-        setLoading(false);
 
-        }
+            if(limit === 0) {
+                throw new Error("Please select at least 1 transaction");
+            }
+
+            return await transactionService.getTransactionSignatures(publicKey, limit);
+        },
+        enabled: !!publicKey && limit > 0
         
+    })
+
+    return {
+        transactions: queryResult.data || [],
+        loading: queryResult.isLoading,
+        error: queryResult.error?.message || null,
+        refetch: queryResult.refetch,
+        totalCount: queryResult.data?.length || 0
     }
-        utilizeTransactions();
-    }, [ publicKey, connection, limit, refetchTrigger ])
-    
-const refetch = () => {
-    setRefetchTrigger(prev => prev + 1);
+
 }
 
-
-  return {
-    transactions: getTransaction,
-    loading,
-    error,
-    refetch,
-    totalCount: getTransaction.length
-  }
-}
-
-export default UseTransactions
+export default UseTransactionsQuery;
