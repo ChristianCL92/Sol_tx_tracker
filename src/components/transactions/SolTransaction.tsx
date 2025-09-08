@@ -1,8 +1,8 @@
 "use client"
 
 import { useWallet } from "@solana/wallet-adapter-react";
-import UseTransactions from "@/hooks/UseTransactions";
-import UseTransactionDetails from "@/hooks/UseTransactionDetails";
+import UseTransactionsQuery from "@/hooks/UseTransactions";
+import transactionDetailsQuery from "@/hooks/UseTransactionDetails";
 import { useMemo, useState } from "react";
 
 const SolTransaction = () => {
@@ -16,7 +16,7 @@ const SolTransaction = () => {
     
 ), [selectTxQuantity])
   
-  const { transactions, loading, error, refetch, totalCount } = UseTransactions(txQuantity);
+  const { transactions, loading, error, refetch, totalCount } = UseTransactionsQuery(txQuantity);
   const [spamThreshold, setSpamThreshold] = useState(0);
   const [showSpamSettings, setShowSpamSettings] = useState(false);
   
@@ -28,8 +28,8 @@ const SolTransaction = () => {
 
  
 
-  const { fetchTransactionDetails, transactionDetails, loading: detailsLoading, isSpamDetected} = UseTransactionDetails(spamConfig);
   const [ showSelectedTransaction, setShowSelectedTransaction ] = useState<string | null>(null)
+  const {  transactionDetails, loading: detailsLoading, isSpamDetected} = transactionDetailsQuery(showSelectedTransaction || ""  , spamConfig);
 
   const formatDate = (blockTime: number | null) => {
     if (!blockTime) return 'Unknown';
@@ -45,7 +45,6 @@ const SolTransaction = () => {
       setShowSelectedTransaction(null);
     } else {
       setShowSelectedTransaction(signature);
-      return fetchTransactionDetails(signature);
     }
 
   }
@@ -83,7 +82,6 @@ const SolTransaction = () => {
       </div>
     );
   }
-  console.log("refetching before jsx", refetch);
   return (
     <div className="p-2 w-2/6 mx-auto">
       <div className="mb-6">
@@ -98,7 +96,7 @@ const SolTransaction = () => {
           </button>
           <div className="flex gap-2">
           <button 
-            onClick={refetch}
+            onClick={() => refetch}
             className="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 text-sm cursor-pointer"
           >
             Refresh
@@ -208,7 +206,7 @@ const SolTransaction = () => {
                   <p><strong>Balance changes</strong></p>
                          {transactionDetails.meta.preBalances.map((preBal, index) => {
                   const postBal = transactionDetails.meta!.postBalances[index];
-                  const change = (postBal - preBal) / 1000000000; // Converting lamports to SOL
+                  const change = (postBal - preBal) / 1000000000; 
                   if (change !== 0) {
                     return (
                         <p key={index} className={`text-sm ${change > 0 ? 'text-green-600' : 'text-red-600'}`}>
@@ -220,7 +218,6 @@ const SolTransaction = () => {
                   </div>
                 )}
 
-                {/* Transaction Details */}
                 {transactionDetails.transaction?.message?.instructions && (
                   <div className="mt-3 p-2">
                     <p><strong>Instructions:</strong></p>
@@ -231,7 +228,6 @@ const SolTransaction = () => {
                             <p><strong>Instruction {index + 1}:</strong> {instruction.parsed?.type || 'Unknown'}</p>
                             {instruction.parsed?.info && (
                               <div className="mt-1">
-                                {/* Readable instruction info displayed */}
                                 {instruction.parsed.type === 'transfer' && (
                                   <div className="text-xs">
                                     <p>Amount: {(instruction.parsed.info.lamports / 1000000000).toFixed(9)} SOL</p>
@@ -239,7 +235,6 @@ const SolTransaction = () => {
                                     <p>To: {instruction.parsed.info.destination?.slice(0, 8)}...{instruction.parsed.info.destination?.slice(-8)}</p>
                                   </div>
                                 )}
-                                {/*Instructions not parsed by Solana RPC*/}
                                 {instruction.parsed.type !== 'transfer' && (
                                   <pre className="text-xs mt-1 overflow-x-auto bg-white p-1 rounded">
                                     {JSON.stringify(instruction.parsed.info, null, 2)}
