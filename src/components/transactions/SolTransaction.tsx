@@ -196,7 +196,7 @@ const SolTransaction = () => {
                 transactionDetails && showSelectedTransaction === tx.signature ? "Hide Details" : "View Details" }
               </button>
             </div>
-            {showSelectedTransaction === tx.signature && transactionDetails && (
+            {showSelectedTransaction === tx.signature && transactionDetails && !isSpamDetected && (
               <div className="mt-4 p-3 bg-gray-200 rounded">
                 <h4 className="font-semibold mb-2">Transaction Details:</h4>
                 <p><strong>Fee:</strong> {(transactionDetails.meta?.fee ?? 0) / 1000000000} Sol</p>
