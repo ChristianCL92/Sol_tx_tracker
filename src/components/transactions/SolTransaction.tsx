@@ -3,30 +3,38 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import UseTransactionsQuery from "@/hooks/UseTransactions";
 import transactionDetailsQuery from "@/hooks/UseTransactionDetails";
+import { useWalletSyncContext } from "@/context/WalletSyncContext";
 import { useMemo, useState } from "react";
 
 const SolTransaction = () => {
   const { publicKey } = useWallet();
-  const [selectTxQuantity, setSelectTxQuantity] = useState(10)
-  const [showTxSection, setShowTxSection] = useState(false);
+  const {
+    spamThreshold,
+    preferredTxLimit,
+    updateSpamThreshold,
+    updatePreferredTxLimit
+  } = useWalletSyncContext()
 
-   const txQuantity = useMemo(
+  const [showTxSection, setShowTxSection] = useState(false);
+  const [showSpamSettings, setShowSpamSettings] = useState(false);
+  
+  const { transactions, loading, error, refetch, totalCount } = UseTransactionsQuery(preferredTxLimit);
+  
+  //const [selectTxQuantity, setSelectTxQuantity] = useState(10)
+
+   /* const txQuantity = useMemo(
     () => (
       selectTxQuantity
     
-), [selectTxQuantity])
+), [selectTxQuantity]) */
   
-  const { transactions, loading, error, refetch, totalCount } = UseTransactionsQuery(txQuantity);
-  const [spamThreshold, setSpamThreshold] = useState(0);
-  const [showSpamSettings, setShowSpamSettings] = useState(false);
+  //const [spamThreshold, setSpamThreshold] = useState(0);
   
   const spamConfig = useMemo(
     () => ({
       minAmountThreshold: spamThreshold
     }
   ), [spamThreshold])
-
- 
 
   const [ showSelectedTransaction, setShowSelectedTransaction ] = useState<string | null>(null)
   const {  transactionDetails, loading: detailsLoading, isSpamDetected} = transactionDetailsQuery(showSelectedTransaction || ""  , spamConfig);
@@ -120,7 +128,7 @@ const SolTransaction = () => {
                   max={1}
                   step="0.0001"
                   value={spamThreshold}
-                  onChange={(e)=> setSpamThreshold(Number(e.target.value))
+                  onChange={(e)=> updateSpamThreshold(Number(e.target.value))
 }
                   className="px-4 rounded-lg border w-25 focus: outline-none focus:ring-2 focus:ring-blue-300"
                   />
@@ -129,19 +137,19 @@ const SolTransaction = () => {
                 <div className="flex gap-4">
                     <span className="text-sm">Quick set</span>
                   <button 
-                onClick={() => setSpamThreshold(0.0001)}
+                onClick={() => updateSpamThreshold(0.0001)}
                 className={`px-2 py-1 text-xs rounded ${spamThreshold === 0.0001 ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
               >
                 Ultra Strict (0.0001)
               </button>
               <button 
-                onClick={() => setSpamThreshold(0.001)}
+                onClick={() => updateSpamThreshold(0.001)}
                 className={`px-2 py-1 text-xs rounded ${spamThreshold === 0.001 ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
               >
                 Strict (0.001)
               </button>
               <button 
-                onClick={() => setSpamThreshold(0.01)}
+                onClick={() => updateSpamThreshold(0.01)}
                 className={`px-2 py-1 text-xs rounded ${spamThreshold === 0.01 ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'}`}
               >
                 Lenient (0.01)
@@ -160,8 +168,8 @@ const SolTransaction = () => {
              <input 
              type="number"
               min={0}
-              value={selectTxQuantity}
-              onChange={(e) =>setSelectTxQuantity(Number(e.target.value))}
+              value={preferredTxLimit}
+              onChange={(e) =>updatePreferredTxLimit(Number(e.target.value))}
               className="border rounded-lg px-4"
               />
             </div>)
