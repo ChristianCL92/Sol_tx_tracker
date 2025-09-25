@@ -6,5 +6,4 @@ export interface WalletSyncContextType {
   error: string | null;
   updateSpamThreshold: (threshold: number) => void;
   updatePreferredTxLimit: (limit: number) => void;
-  refreshBalance: () => Promise<void>;
 }
