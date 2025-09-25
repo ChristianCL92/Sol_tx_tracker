@@ -12,3 +12,7 @@ export const updateWallet = async (publicKey: string, walletDataUpdate: WalletBa
 export const pingWallet = (publicKey:string) => {
     return ApiClient.put(`/wallets/${publicKey}/ping`);
 }
+
+export const getWallet = (publicKey:string) => {
+    ApiClient.get(`/wallets/${publicKey}`);
+}
