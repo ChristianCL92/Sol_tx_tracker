@@ -20,16 +20,6 @@ const SolTransaction = () => {
   
   const { transactions, loading, error, refetch, totalCount } = UseTransactionsQuery(preferredTxLimit);
   
-  //const [selectTxQuantity, setSelectTxQuantity] = useState(10)
-
-   /* const txQuantity = useMemo(
-    () => (
-      selectTxQuantity
-    
-), [selectTxQuantity]) */
-  
-  //const [spamThreshold, setSpamThreshold] = useState(0);
-  
   const spamConfig = useMemo(
     () => ({
       minAmountThreshold: spamThreshold
