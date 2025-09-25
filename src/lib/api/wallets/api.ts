@@ -6,13 +6,13 @@ export const createWallet = async (walletData: WalletBackendPayload) => {
 }
 
 export const updateWallet = async (publicKey: string, walletDataUpdate: WalletBackendPayload) => {
-    return ApiClient.patch(`/wallets/${publicKey}`, walletDataUpdate)
+    return await ApiClient.patch(`/wallets/${publicKey}`, walletDataUpdate)
 }
 
-export const pingWallet = (publicKey:string) => {
-    return ApiClient.put(`/wallets/${publicKey}/ping`);
+export const pingWallet = async (publicKey:string) => {
+    return await  ApiClient.put(`/wallets/${publicKey}/ping`);
 }
 
-export const getWallet = (publicKey:string) => {
-    ApiClient.get(`/wallets/${publicKey}`);
+export const getWallet = async (publicKey:string) => {
+    return await ApiClient.get(`/wallets/${publicKey}`);
 }
