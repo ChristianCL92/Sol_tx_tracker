@@ -3,6 +3,7 @@
 import type { Metadata } from "next";
 import { SolanaProvider } from "@/hooks/SolanaProvider";
 import { QueryProvider } from "./provider/QueryProvider";
+import { WalletSyncProvider } from "@/context/WalletSyncContext";
 import { Geist, Geist_Mono, Poppins} from "next/font/google";
 import "./globals.css";
 
@@ -40,7 +41,11 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
         <QueryProvider>
-        <SolanaProvider>{children}</SolanaProvider>
+        <SolanaProvider>
+          <WalletSyncProvider>
+          {children}
+          </WalletSyncProvider>
+          </SolanaProvider>
         </QueryProvider>
         
       </body>
