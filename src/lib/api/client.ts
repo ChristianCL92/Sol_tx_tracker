@@ -1,5 +1,5 @@
 
-const API_BASE_URL = "http://localhost:3001";
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL
 
 export const ApiClient = {
     post: async(endpoint: string, data: any ) => {
