@@ -1,7 +1,7 @@
-import { createWallet, updateWallet, pingWallet, getWallet } from "@/lib/api/wallets/api";
-import { WalletBackendPayload } from "@/lib/types/wallet";
-import { Connection } from "@solana/web3.js";
 import { useState, useEffect, useRef } from "react";
+import { WalletBackendPayload } from "@/lib/types/wallet";
+import { UseCreateWalletMutation, UseUpdateWalletMutation, UsePingWalletMutation } from "../UseWalletMutations";
+import { getWallet } from "@/lib/api/wallets/api";
 
 export const useWalletSync = (
     publicKey: string | null,
@@ -11,20 +11,18 @@ export const useWalletSync = (
     spamThreshold: number
 
 ) => {
- const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const [isWalletSynced, setIsWalletSynced] = useState(false)
-
-  
   const hasWalletBeenChecked = useRef(false)
+
+  const createMutation = UseCreateWalletMutation()
+  const updateMutation = UseUpdateWalletMutation()
+  const pingMutation = UsePingWalletMutation()
 
   const startWallet = async () => {
 
     if(!publicKey || !connected || balance === null) return;
-      setIsLoading(true);
-      setError(null);
-      
+     
       try {
         const walletExist = await getWallet(publicKey)
          if (walletExist) {
@@ -35,7 +33,6 @@ export const useWalletSync = (
        
       } catch (error: any) {
         if(error.message?.includes("404") || error.message?.includes("not found")) {
-          try {
           const walletToCreate: WalletBackendPayload = {
             publicKey,
             network: "mainnet",
@@ -43,20 +40,16 @@ export const useWalletSync = (
             preferredTxLimit,
             spamThreshold
           }
-          await createWallet(walletToCreate);
-          setIsWalletSynced(true)
-          setLastSyncTime(new Date())
-            
-          } catch (createError: any ) {
-            setError(createError.message || "Failed To create wallete");
-          } 
-          
+           createMutation.mutate(walletToCreate, {
+            onSuccess: () => {
+              setIsWalletSynced(true)
+              setLastSyncTime(new Date())
+            }
+           }) 
         } else {
-          setError(error.message || 'Failed to check wallet');
-        console.error('❌ Failed to check wallet:', error);
+           console.error("❌ Failed to execute:", error);
         } 
       } finally {
-        setIsLoading(false)
         hasWalletBeenChecked.current = true;
       }
     
@@ -64,10 +57,6 @@ export const useWalletSync = (
  
     const syncWalletUpdate = async() => {
         if(!publicKey || !connected || !isWalletSynced || balance === null) return;
-        setIsLoading(true)
-        setError(null)
-
-        try {
          const updateParameters = {
             publicKey,
             network: "mainnet",
@@ -75,25 +64,18 @@ export const useWalletSync = (
             preferredTxLimit,
             spamThreshold
          }
-         await updateWallet(publicKey, updateParameters)
-            setLastSyncTime(new Date())
-            console.log(' Wallet updated in backend');
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Failed to update wallet');
-            console.error('❌ Failed to update wallet:', err);
-        } finally {
-            setIsLoading(false);
-        }
+           updateMutation.mutate({publicKey, data: updateParameters}, 
+            {onSuccess: () => {
+              setLastSyncTime(new Date());
+            }
+          }
+        )        
     }
 
     const syncWalletPing = async () => {
     if (!publicKey || !connected || !isWalletSynced) return;
-    
-    try {
-      await pingWallet(publicKey);
-    } catch (err) {
-      console.error('❌ Failed to ping wallet:', err);
-    }
+        pingMutation.mutate(publicKey)
+      
   };
   
   useEffect(() => {
@@ -122,12 +104,14 @@ useEffect(() => {
       syncWalletPing();
     }
   }, [connected, isWalletSynced]);
-  
+
   return {
-    isLoading,
-    error,
+    isLoading: createMutation.isPending || updateMutation.isPending,
+    error: createMutation.error?.message || 
+           updateMutation.error?.message || 
+           null,
     lastSyncTime,
     isWalletSynced
-  };
+  }
 };
 
