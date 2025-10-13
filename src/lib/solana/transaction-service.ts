@@ -1,4 +1,5 @@
-import { Connection, PublicKey, ConfirmedSignatureInfo, ParsedTransactionWithMeta} from "@solana/web3.js";
+import { Connection, PublicKey, ConfirmedSignatureInfo, ParsedTransactionWithMeta, TokenAccountsFilter} from "@solana/web3.js";
+import {TOKEN_PROGRAM_ID} from "@solana/spl-token";
 
 export interface TransactionSummary {
     signature: string;
@@ -93,6 +94,21 @@ export class TransactionService {
             return "Complex transaction"
         }
         return "Unknown"
+    }
+
+    async getTokenAccounts(publicKey: PublicKey ):Promise<any[]| null>{
+        try {
+            const splTokens = await this.connection.getParsedTokenAccountsByOwner(publicKey, {
+            programId: TOKEN_PROGRAM_ID
+          })
+
+        return splTokens.value
+
+        } catch (error) {
+            console.error("Error fetching spl token data", error);
+            return null;
+        }
+       
     }
 
 }
