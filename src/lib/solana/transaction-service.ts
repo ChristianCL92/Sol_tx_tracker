@@ -87,15 +87,6 @@ export class TransactionService {
         }
     }
 
-    analyseTransactionData (transaction: DetaildTransactions ) {
-        if (transaction.instructions.length === 1) {
-            return "Single transaction"
-        } else if (transaction.instructions.length > 1) {
-            return "Complex transaction"
-        }
-        return "Unknown"
-    }
-
     async getTokenAccounts(publicKey: PublicKey ):Promise<any[]| null>{
         try {
             const splTokens = await this.connection.getParsedTokenAccountsByOwner(publicKey, {
